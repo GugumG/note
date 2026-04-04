@@ -14,7 +14,8 @@ class TaskController extends Controller
      */
     public function index()
     {
-        $tasks = Task::orderBy('is_pinned', 'desc')
+        $tasks = auth()->user()->tasks()
+                    ->orderBy('is_pinned', 'desc')
                     ->orderByRaw("CASE 
                         WHEN status != 'complete' AND deadline IS NOT NULL AND deadline < date('now', 'localtime') THEN 2
                         WHEN status != 'complete' AND deadline IS NOT NULL AND deadline <= date('now', 'localtime', '+3 days') THEN 1
@@ -47,7 +48,7 @@ class TaskController extends Controller
             'content' => 'nullable|string',
         ]);
 
-        Task::create($validated);
+        auth()->user()->tasks()->create($validated);
 
         return redirect()->route('notes.index')->with('success', 'Task berhasil ditambahkan!');
     }
@@ -57,14 +58,13 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
+        if ($task->user_id !== auth()->id()) abort(403);
         return view('tasks.show', compact('task'));
     }
 
-    /**
-     * Show the form for editing the task.
-     */
     public function edit(Task $task)
     {
+        if ($task->user_id !== auth()->id()) abort(403);
         return view('tasks.edit', compact('task'));
     }
 
@@ -82,16 +82,15 @@ class TaskController extends Controller
             'content' => 'nullable|string',
         ]);
 
+        if ($task->user_id !== auth()->id()) abort(403);
         $task->update($validated);
 
         return redirect()->route('notes.index')->with('success', 'Task berhasil diperbarui!');
     }
 
-    /**
-     * Show the completion validation form.
-     */
     public function completeForm(Task $task)
     {
+        if ($task->user_id !== auth()->id()) abort(403);
         return view('tasks.complete', compact('task'));
     }
 
@@ -114,6 +113,8 @@ class TaskController extends Controller
             // $daysDiff > 0 means finished early, negative means late
         }
 
+        if ($task->user_id !== auth()->id()) abort(403);
+
         $task->update([
             'completion_data' => $validated['completion_data'],
             'status' => 'complete',
@@ -129,6 +130,7 @@ class TaskController extends Controller
      */
     public function togglePin(Task $task)
     {
+        if ($task->user_id !== auth()->id()) abort(403);
         $task->update([
             'is_pinned' => !$task->is_pinned,
         ]);
@@ -141,6 +143,7 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
+        if ($task->user_id !== auth()->id()) abort(403);
         $task->delete();
 
         return redirect()->back()->with('success', 'Task berhasil dihapus!');

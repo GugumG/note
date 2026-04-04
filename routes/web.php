@@ -12,45 +12,52 @@ use App\Http\Controllers\NoteController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\SettingController;
 
-// [4b] Redirect root URL "/" ke halaman daftar catatan
-Route::get('/', function () {
-    return redirect()->route('notes.index');
+use App\Http\Controllers\AuthController;
+
+// --------------------------------------------------------
+// [Auth] — Routes untuk Autentikasi (Guest Only)
+// --------------------------------------------------------
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
 });
 
-// [4c] Resource routes untuk Note CRUD
-//      Ini menghasilkan 7 routes lengkap:
-//      GET    /notes              → NoteController@index   (STEP [3b])  → View: notes.index  (STEP [5])
-//      GET    /notes/create       → NoteController@create  (STEP [3e])  → View: notes.create (STEP [6])
-//      POST   /notes              → NoteController@store   (STEP [3g])
-//      GET    /notes/{note}       → NoteController@show    (STEP [3bb]) → View: notes.show   (STEP [10])
-//      GET    /notes/{note}/edit  → NoteController@edit    (STEP [3n])  → View: notes.edit   (STEP [7])
-//      PUT    /notes/{note}       → NoteController@update  (STEP [3p])
-//      DELETE /notes/{note}       → NoteController@destroy (STEP [3t])
-Route::resource('notes', NoteController::class);
-Route::get('/notes/{note}/export-pdf', [NoteController::class, 'exportPdf'])->name('notes.export-pdf');
-
-// [New] Resource routes for Task CRUD
-Route::resource('tasks', TaskController::class);
-Route::post('tasks/{task}/complete', [TaskController::class, 'complete'])->name('tasks.complete');
-Route::post('tasks/{task}/toggle-pin', [TaskController::class, 'togglePin'])->name('tasks.toggle-pin');
-Route::post('notes/{note}/toggle-pin', [NoteController::class, 'togglePin'])->name('notes.toggle-pin');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // --------------------------------------------------------
-// [New] Pengaturan / Theme Routes
+// [Protected] — Semua route di bawah ini wajib Login (Auth Middleare)
 // --------------------------------------------------------
-Route::get('/settings/theme', [SettingController::class, 'theme'])->name('settings.theme');
-Route::post('/settings/theme', [SettingController::class, 'updateTheme'])->name('settings.update-theme');
+Route::middleware('auth')->group(function () {
 
-// --------------------------------------------------------
-// [New] Dummy Routes for User & Role (Postponed but for link stability)
-// --------------------------------------------------------
-Route::get('/settings/users', function() { return view('settings.dummy', ['title' => 'User Management']); })->name('settings.users');
-Route::get('/settings/roles', function() { return view('settings.dummy', ['title' => 'Role Management']); })->name('settings.roles');
+    // [4b] Redirect root URL "/" ke halaman daftar catatan
+    Route::get('/', function () {
+        return redirect()->route('notes.index');
+    });
 
-// [New] Special routes for completing a task with validation data
-Route::get('/tasks/{task}/complete', [TaskController::class, 'completeForm'])->name('tasks.complete-form');
+    // [4c] Resource routes untuk Note CRUD
+    Route::resource('notes', NoteController::class);
+    Route::get('/notes/{note}/export-pdf', [NoteController::class, 'exportPdf'])->name('notes.export-pdf');
 
-// [4e] Route khusus untuk upload gambar dari Quill editor
-//      Dipanggil dari JavaScript di create.blade.php (STEP [6]) dan edit.blade.php (STEP [7])
-Route::post('/notes/upload-image', [NoteController::class, 'uploadImage'])
-     ->name('notes.upload-image');
+    // [New] Resource routes for Task CRUD
+    Route::resource('tasks', TaskController::class);
+    Route::post('tasks/{task}/complete', [TaskController::class, 'complete'])->name('tasks.complete');
+    Route::post('tasks/{task}/toggle-pin', [TaskController::class, 'togglePin'])->name('tasks.toggle-pin');
+    Route::post('notes/{note}/toggle-pin', [NoteController::class, 'togglePin'])->name('notes.toggle-pin');
+
+    // [New] Pengaturan / Theme Routes
+    Route::get('/settings/theme', [SettingController::class, 'theme'])->name('settings.theme');
+    Route::post('/settings/theme', [SettingController::class, 'updateTheme'])->name('settings.update-theme');
+
+    // [New] Dummy Routes for User & Role (Postponed but for link stability)
+    Route::get('/settings/users', function() { return view('settings.dummy', ['title' => 'User Management']); })->name('settings.users');
+    Route::get('/settings/roles', function() { return view('settings.dummy', ['title' => 'Role Management']); })->name('settings.roles');
+
+    // [New] Special routes for completing a task with validation data
+    Route::get('/tasks/{task}/complete', [TaskController::class, 'completeForm'])->name('tasks.complete-form');
+
+    // [4e] Route khusus untuk upload gambar dari Quill editor
+    Route::post('/notes/upload-image', [NoteController::class, 'uploadImage'])
+         ->name('notes.upload-image');
+});

@@ -46,4 +46,26 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // ------------------------------------------------------------
+    // [RELASI] — Setiap User memiliki koleksi Catatan, Task, dan Setting.
+    // ------------------------------------------------------------
+
+    /** @return \Illuminate\Database\Eloquent\Relations\HasMany */
+    public function notes()
+    {
+        return $this->hasMany(Note::class);
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\HasMany */
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Relations\HasMany */
+    public function settings()
+    {
+        return $this->hasMany(Setting::class);
+    }
 }

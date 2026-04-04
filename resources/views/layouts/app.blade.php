@@ -123,15 +123,27 @@
             </a>
         </nav>
 
-        {{-- [8j] Footer sidebar --}}
+        {{-- [8j] Footer sidebar with User Identity & Logout --}}
         <div class="sidebar-footer">
-            <div class="sidebar-footer-info">
-                <div class="sidebar-footer-avatar">NA</div>
+            <div class="sidebar-footer-info" style="margin-bottom: 12px;">
+                <div class="sidebar-footer-avatar">
+                    {{ strtoupper(substr(auth()->user()->name ?? 'NA', 0, 2)) }}
+                </div>
                 <div>
-                    <p class="sidebar-footer-name">Note App</p>
-                    <p class="sidebar-footer-sub">v1.0.0</p>
+                    <p class="sidebar-footer-name">{{ auth()->user()->name }}</p>
+                    <p class="sidebar-footer-sub">{{ auth()->user()->email }}</p>
                 </div>
             </div>
+            
+            <form action="{{ route('logout') }}" method="POST" style="width: 100%;">
+                @csrf
+                <button type="submit" class="sidebar-link" style="width: 100%; background: rgba(192, 57, 43, 0.1); color: #e74c3c; border: none; cursor: pointer; padding: 8px 14px; font-size: 0.82rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                        <path d="M16 17v-3H9v-4h7V7l5 5-5 5zM14 2a2 2 0 012 2v2h-2V4H5v16h9v-2h2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V4a2 2 0 012-2h9z"/>
+                    </svg>
+                    <span>Logout</span>
+                </button>
+            </form>
         </div>
     </aside>
 
