@@ -31,6 +31,26 @@
                 @error('title') <p class="form-error">{{ $message }}</p> @enderror
             </div>
 
+            <div class="form-group-row" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label for="category" class="form-label">
+                        <span class="label-icon">📂</span>
+                        Proyek / Kategori
+                    </label>
+                    <input type="text" name="category" id="category" class="form-input @error('category') is-error @enderror" value="{{ old('category') }}" placeholder="Contoh: Projek A, Belajar...">
+                    @error('category') <p class="form-error">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="color" class="form-label">
+                        <span class="label-icon">🎨</span>
+                        Warna Label
+                    </label>
+                    <input type="color" name="color" id="color" class="form-input @error('color') is-error @enderror" value="{{ old('color', '#547792') }}" style="height: 45px; cursor: pointer; padding: 4px;">
+                    @error('color') <p class="form-error">{{ $message }}</p> @enderror
+                </div>
+            </div>
+
             <div class="form-group">
                 <label for="deadline" class="form-label">
                     <span class="label-icon">📅</span>

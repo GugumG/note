@@ -139,14 +139,28 @@
 
             <div class="tasks-vertical-list">
                 @forelse($tasks as $task)
-                    <div class="note-card task-sidebar-item {{ $task->is_pinned ? 'is-pinned' : '' }}" style="border-left: 4px solid var(--color-secondary); margin-bottom: 20px;">
-                        <div class="note-card-date">
-                            <span class="status-badge status-{{ str_replace(' ', '-', $task->status) }}" style="font-size: 0.7rem; padding: 2px 6px;">
-                                {{ $task->status }}
-                            </span>
-                            @if($task->deadline)
-                                <span style="margin-left: 8px; opacity: 0.7; font-size: 0.75rem;">
-                                    {{ $task->deadline->isoFormat('D MMM') }}
+                    <div class="note-card task-sidebar-item {{ $task->is_pinned ? 'is-pinned' : '' }}" style="border-left: 5px solid {{ $task->color ?? 'var(--color-secondary)' }}; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="note-card-date">
+                                <div style="display: flex; gap: 4px; align-items: center;">
+                                    @if($task->urgency_label)
+                                        <span class="status-badge status-{{ strtolower($task->urgency_label) }}" style="font-size: 0.62rem; padding: 1px 5px;">
+                                            {{ $task->urgency_label }}
+                                        </span>
+                                    @endif
+                                    <span class="status-badge status-{{ str_replace(' ', '-', $task->status) }}" style="font-size: 0.62rem; padding: 1px 5px;">
+                                        {{ $task->status }}
+                                    </span>
+                                </div>
+                                @if($task->deadline)
+                                    <span style="margin-left: 8px; opacity: 0.7; font-size: 0.75rem;">
+                                        {{ $task->deadline->isoFormat('D MMM') }}
+                                    </span>
+                                @endif
+                            </div>
+                            @if($task->category)
+                                <span style="font-size: 0.65rem; font-weight: 700; color: white; background: {{ $task->color ?? 'var(--color-secondary)' }}; padding: 1px 8px; border-radius: 10px; text-transform: uppercase;">
+                                    {{ $task->category }}
                                 </span>
                             @endif
                         </div>

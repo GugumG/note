@@ -8,7 +8,9 @@
 // ============================================================
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\NoteController; // [4a] Import NoteController (STEP [3])
+use App\Http\Controllers\NoteController;
+use App\Http\Controllers\TaskController;
+use App\Http\Controllers\SettingController;
 
 // [4b] Redirect root URL "/" ke halaman daftar catatan
 Route::get('/', function () {
@@ -25,18 +27,28 @@ Route::get('/', function () {
 //      PUT    /notes/{note}       → NoteController@update  (STEP [3p])
 //      DELETE /notes/{note}       → NoteController@destroy (STEP [3t])
 Route::resource('notes', NoteController::class);
+Route::get('/notes/{note}/export-pdf', [NoteController::class, 'exportPdf'])->name('notes.export-pdf');
 
 // [New] Resource routes for Task CRUD
-use App\Http\Controllers\TaskController;
 Route::resource('tasks', TaskController::class);
+Route::post('tasks/{task}/complete', [TaskController::class, 'complete'])->name('tasks.complete');
+Route::post('tasks/{task}/toggle-pin', [TaskController::class, 'togglePin'])->name('tasks.toggle-pin');
+Route::post('notes/{note}/toggle-pin', [NoteController::class, 'togglePin'])->name('notes.toggle-pin');
+
+// --------------------------------------------------------
+// [New] Pengaturan / Theme Routes
+// --------------------------------------------------------
+Route::get('/settings/theme', [SettingController::class, 'theme'])->name('settings.theme');
+Route::post('/settings/theme', [SettingController::class, 'updateTheme'])->name('settings.update-theme');
+
+// --------------------------------------------------------
+// [New] Dummy Routes for User & Role (Postponed but for link stability)
+// --------------------------------------------------------
+Route::get('/settings/users', function() { return view('settings.dummy', ['title' => 'User Management']); })->name('settings.users');
+Route::get('/settings/roles', function() { return view('settings.dummy', ['title' => 'Role Management']); })->name('settings.roles');
 
 // [New] Special routes for completing a task with validation data
 Route::get('/tasks/{task}/complete', [TaskController::class, 'completeForm'])->name('tasks.complete-form');
-Route::post('/tasks/{task}/complete', [TaskController::class, 'complete'])->name('tasks.complete');
-
-// [New] Toggle pin status
-Route::post('/tasks/{task}/toggle-pin', [TaskController::class, 'togglePin'])->name('tasks.toggle-pin');
-Route::post('/notes/{note}/toggle-pin', [NoteController::class, 'togglePin'])->name('notes.toggle-pin');
 
 // [4e] Route khusus untuk upload gambar dari Quill editor
 //      Dipanggil dari JavaScript di create.blade.php (STEP [6]) dan edit.blade.php (STEP [7])

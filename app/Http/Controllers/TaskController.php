@@ -15,6 +15,11 @@ class TaskController extends Controller
     public function index()
     {
         $tasks = Task::orderBy('is_pinned', 'desc')
+                    ->orderByRaw("CASE 
+                        WHEN status != 'complete' AND deadline IS NOT NULL AND deadline < date('now', 'localtime') THEN 2
+                        WHEN status != 'complete' AND deadline IS NOT NULL AND deadline <= date('now', 'localtime', '+3 days') THEN 1
+                        ELSE 0
+                    END DESC")
                     ->orderBy('deadline', 'asc')
                     ->get();
         return view('tasks.index', compact('tasks'));
@@ -35,6 +40,8 @@ class TaskController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'category' => 'nullable|string|max:255',
+            'color' => 'nullable|string|max:7',
             'deadline' => 'nullable|date',
             'status' => 'required|in:pending,suspend,on progress,complete',
             'content' => 'nullable|string',
@@ -68,6 +75,8 @@ class TaskController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'category' => 'nullable|string|max:255',
+            'color' => 'nullable|string|max:7',
             'deadline' => 'nullable|date',
             'status' => 'required|in:pending,suspend,on progress,complete',
             'content' => 'nullable|string',

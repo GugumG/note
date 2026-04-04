@@ -10,8 +10,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Note;           // [3a] Import Model Note (STEP [2])
+use App\Models\Note;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class NoteController extends Controller
 {
@@ -36,9 +37,14 @@ class NoteController extends Controller
         $notes = $query->get();
 
         // [New] Ambil semua task yang statusnya BUKAN 'complete' untuk sidebar
-        //      Sama juga urutkan PINNED dulu
+        //      Urutkan: Manual Pin > Telat > Mepet > Deadline terdekat
         $tasks = \App\Models\Task::where('status', '!=', 'complete')
                                  ->orderBy('is_pinned', 'desc')
+                                 ->orderByRaw("CASE 
+                                     WHEN deadline IS NOT NULL AND deadline < date('now', 'localtime') THEN 2
+                                     WHEN deadline IS NOT NULL AND deadline <= date('now', 'localtime', '+3 days') THEN 1
+                                     ELSE 0
+                                 END DESC")
                                  ->orderBy('deadline', 'asc')
                                  ->get();
 
@@ -173,5 +179,21 @@ class NoteController extends Controller
         return response()->json([
             'url' => asset('storage/' . $path),
         ]);
+    }
+
+    /**
+     * Export a specific note to PDF.
+     */
+    public function exportPdf($id)
+    {
+        $note = Note::findOrFail($id);
+
+        // Load the specialized PDF view
+        $pdf = Pdf::loadView('notes.pdf', compact('note'));
+
+        // Sanitize title for filename
+        $filename = 'Catatan_' . str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '-', $note->title) . '.pdf';
+
+        return $pdf->download($filename);
     }
 }

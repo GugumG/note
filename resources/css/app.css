@@ -40,6 +40,8 @@
     /* Biru muda → hover, garis, tag */
     --color-bg: #F3F4F4;
     /* Krem hangat → background halaman */
+    --color-navbar: #EAE0CFec;
+    /* Warna Topbar/Navbar */
 
     /* Turunan warna */
     --color-primary-dark: #182636;
@@ -299,7 +301,7 @@ body {
     top: 0;
     z-index: 50;
     height: var(--navbar-height);
-    background: rgba(234, 224, 207, 0.92);
+    background: var(--color-navbar);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--color-border);
@@ -1230,6 +1232,19 @@ body {
     transform: translateY(-1px);
 }
 
+.btn-action-pdf {
+    color: #e67e22;
+    border-color: #e67e22;
+    background: rgba(230, 126, 34, 0.06);
+}
+
+.btn-action-pdf:hover {
+    background: #e67e22;
+    color: white;
+    box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
+    transform: translateY(-1px);
+}
+
 .btn-action-delete {
     color: #c0392b;
     border-color: #c0392b;
@@ -1566,5 +1581,33 @@ body {
         width: 100%;
         position: static;
         max-height: none;
+    }
+}
+/* Urgency Status Styles */
+.status-mepet {
+    background: #ef4444 !important;
+    color: white !important;
+    font-weight: 700 !important;
+    animation: pulse-red 2s infinite;
+}
+
+.status-telat {
+    background: #7f1d1d !important;
+    color: white !important;
+    font-weight: 700 !important;
+}
+
+@keyframes pulse-red {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
     }
 }

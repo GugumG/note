@@ -44,6 +44,18 @@
 
             {{-- [10g] Tombol aksi di header: Edit & Delete --}}
             <div class="show-header-actions">
+                {{-- [New] Tombol Export PDF --}}
+                <a href="{{ route('notes.export-pdf', $note->id) }}" 
+                   class="btn-action-outline btn-action-pdf" 
+                   id="btn-pdf-show"
+                   title="Simpan ke PDF"
+                   target="_blank">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                        <path d="M11.363 2c4.155 0 2.637 6 2.637 6s6-1.518 6 2.637c0 4.155-1.125 11.363-3 11.363s-5.025-1.256-5.025-5.025c0-3.769 1.025-5.362 1.025-5.362S11.4 12.35 11.4 14.125c0 1.775 0 2.875 0 2.875s-2 0-2-2.125c0-2.125.875-5.25.875-5.25S8.312 11.5 6.963 11.5c-1.35 0-1.963-.613-1.963-1.963s2.637-2.637 6-2.637s.363-4.9 0-4.9z"/>
+                    </svg>
+                    PDF
+                </a>
+
                 {{-- [10h] Tombol Edit → route notes.edit (STEP [4c]) → NoteController@edit (STEP [3n]) --}}
                 <a href="{{ route('notes.edit', $note->id) }}"
                    class="btn-action-outline btn-action-edit"

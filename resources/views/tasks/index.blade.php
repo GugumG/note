@@ -34,19 +34,33 @@
     @else
         <div class="notes-grid"> {{-- Reuse grid style --}}
             @foreach($tasks as $task)
-            <div class="note-card task-full-card {{ $task->is_pinned ? 'is-pinned' : '' }}" style="border-left: 5px solid {{ $task->status == 'complete' ? '#1e40af' : '#547792' }}">
-                <div class="note-card-date">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
-                        <path d="M19 3h-1V1h-2v2H8V1H6v2H5C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/>
-                    </svg>
-                    Deadline: {{ $task->deadline ? $task->deadline->locale('id')->isoFormat('D MMM YYYY') : 'N/A' }}
+            <div class="note-card task-full-card {{ $task->is_pinned ? 'is-pinned' : '' }}" style="border-left: 6px solid {{ $task->color ?? ($task->status == 'complete' ? '#1e40af' : '#547792') }}">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div class="note-card-date">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
+                            <path d="M19 3h-1V1h-2v2H8V1H6v2H5C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/>
+                        </svg>
+                        Deadline: {{ $task->deadline ? $task->deadline->locale('id')->isoFormat('D MMM YYYY') : 'N/A' }}
+                    </div>
+                    @if($task->category)
+                        <span style="font-size: 0.72rem; font-weight: 700; color: white; background: {{ $task->color ?? '#547792' }}; padding: 2px 10px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            {{ $task->category }}
+                        </span>
+                    @endif
                 </div>
                 
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                     <h3 class="note-card-title">{{ $task->title }}</h3>
-                    <span class="status-badge status-{{ str_replace(' ', '-', $task->status) }}">
-                        {{ $task->status }}
-                    </span>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        @if($task->urgency_label)
+                            <span class="status-badge status-{{ strtolower($task->urgency_label) }}">
+                                {{ $task->urgency_label }}
+                            </span>
+                        @endif
+                        <span class="status-badge status-{{ str_replace(' ', '-', $task->status) }}">
+                            {{ $task->status }}
+                        </span>
+                    </div>
                 </div>
 
                 <div class="note-card-excerpt">
