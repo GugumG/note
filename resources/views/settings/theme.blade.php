@@ -31,7 +31,7 @@
             <div class="note-card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 class="note-card-title">Warna Utama (Primary)</h3>
-                    <div style="width: 30px; height: 30px; border-radius: 50%; background: {{ $colors['theme_primary'] }}; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.1);"></div>
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: {{ $colors['theme_primary'] }}; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 800; color: {{ \App\Helpers\ThemeHelper::getContrastColor($colors['theme_primary']) }};">ABC</div>
                 </div>
                 <p style="font-size: 0.8rem; color: var(--color-text-muted); margin: 8px 0 15px;">Digunakan untuk Sidebar, Heading Navbar, dan Text judul utama.</p>
                 <input type="color" name="theme_primary" value="{{ $colors['theme_primary'] }}" style="width: 100%; height: 45px; border-radius: 8px; border: 1.5px solid var(--color-border); cursor: pointer; background: white; padding: 4px;">
@@ -41,7 +41,7 @@
             <div class="note-card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 class="note-card-title">Warna Sekunder (Buttons)</h3>
-                    <div style="width: 30px; height: 30px; border-radius: 50%; background: {{ $colors['theme_secondary'] }}; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.1);"></div>
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: {{ $colors['theme_secondary'] }}; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 800; color: {{ \App\Helpers\ThemeHelper::getContrastColor($colors['theme_secondary']) }};">ABC</div>
                 </div>
                 <p style="font-size: 0.8rem; color: var(--color-text-muted); margin: 8px 0 15px;">Digunakan untuk Tombol utama, Link aktif, dan Aksi penting.</p>
                 <input type="color" name="theme_secondary" value="{{ $colors['theme_secondary'] }}" style="width: 100%; height: 45px; border-radius: 8px; border: 1.5px solid var(--color-border); cursor: pointer; background: white; padding: 4px;">
@@ -51,7 +51,7 @@
             <div class="note-card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 class="note-card-title">Warna Aksen (Hover)</h3>
-                    <div style="width: 30px; height: 30px; border-radius: 50%; background: {{ $colors['theme_accent'] }}; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.1);"></div>
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: {{ $colors['theme_accent'] }}; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 800; color: {{ \App\Helpers\ThemeHelper::getContrastColor($colors['theme_accent']) }};">ABC</div>
                 </div>
                 <p style="font-size: 0.8rem; color: var(--color-text-muted); margin: 8px 0 15px;">Digunakan untuk efek Hover, Badge, dan Highlight elemen.</p>
                 <input type="color" name="theme_accent" value="{{ $colors['theme_accent'] }}" style="width: 100%; height: 45px; border-radius: 8px; border: 1.5px solid var(--color-border); cursor: pointer; background: white; padding: 4px;">
@@ -61,7 +61,7 @@
             <div class="note-card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 class="note-card-title">Warna Latar (Background)</h3>
-                    <div style="width: 30px; height: 30px; border-radius: 50%; background: {{ $colors['theme_bg'] }}; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.1);"></div>
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: {{ $colors['theme_bg'] }}; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 800; color: {{ \App\Helpers\ThemeHelper::getContrastColor($colors['theme_bg']) }};">ABC</div>
                 </div>
                 <p style="font-size: 0.8rem; color: var(--color-text-muted); margin: 8px 0 15px;">Warna dasar latar belakang seluruh aplikasi.</p>
                 <input type="color" name="theme_bg" value="{{ $colors['theme_bg'] }}" style="width: 100%; height: 45px; border-radius: 8px; border: 1.5px solid var(--color-border); cursor: pointer; background: white; padding: 4px;">
@@ -71,7 +71,7 @@
             <div class="note-card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 class="note-card-title">Warna Top Bar (Navbar)</h3>
-                    <div style="width: 30px; height: 30px; border-radius: 50%; background: {{ substr($colors['theme_navbar'], 0, 7) }}; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.1);"></div>
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: {{ substr($colors['theme_navbar'], 0, 7) }}; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 800; color: {{ \App\Helpers\ThemeHelper::getContrastColor(substr($colors['theme_navbar'], 0, 7)) }};">ABC</div>
                 </div>
                 <p style="font-size: 0.8rem; color: var(--color-text-muted); margin: 8px 0 15px;">Warna bilah atas (Navbar) yang berisi judul halaman.</p>
                 {{-- Kita ambil 7 karakter pertama saja (#HEX) untuk input type color --}}

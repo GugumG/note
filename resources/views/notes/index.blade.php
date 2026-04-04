@@ -159,7 +159,7 @@
                                 @endif
                             </div>
                             @if($task->category)
-                                <span style="font-size: 0.65rem; font-weight: 700; color: white; background: {{ $task->color ?? 'var(--color-secondary)' }}; padding: 1px 8px; border-radius: 10px; text-transform: uppercase;">
+                                <span style="font-size: 0.65rem; font-weight: 700; color: {{ \App\Helpers\ThemeHelper::getContrastColor($task->color ?? '#547792') }}; background: {{ $task->color ?? 'var(--color-secondary)' }}; padding: 1px 8px; border-radius: 10px; text-transform: uppercase;">
                                     {{ $task->category }}
                                 </span>
                             @endif

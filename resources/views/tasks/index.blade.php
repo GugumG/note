@@ -43,7 +43,7 @@
                         Deadline: {{ $task->deadline ? $task->deadline->locale('id')->isoFormat('D MMM YYYY') : 'N/A' }}
                     </div>
                     @if($task->category)
-                        <span style="font-size: 0.72rem; font-weight: 700; color: white; background: {{ $task->color ?? '#547792' }}; padding: 2px 10px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <span style="font-size: 0.72rem; font-weight: 700; color: {{ \App\Helpers\ThemeHelper::getContrastColor($task->color ?? '#547792') }}; background: {{ $task->color ?? '#547792' }}; padding: 2px 10px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
                             {{ $task->category }}
                         </span>
                     @endif
@@ -79,10 +79,10 @@
                             
                             @if($task->days_diff !== null)
                                 <span class="completion-badge {{ $task->days_diff >= 0 ? 'completion-early' : 'completion-late' }}">
-                                    @if($task->days_diff > 0)
-                                        Selesai {{ $task->days_diff }} hari lebih awal
-                                    @elseif($task->days_diff < 0)
-                                        Terlambat {{ abs($task->days_diff) }} hari
+                                    @if((int)$task->days_diff > 0)
+                                        Selesai {{ (int)$task->days_diff }} hari lebih awal
+                                    @elseif((int)$task->days_diff < 0)
+                                        Terlambat {{ (int)abs($task->days_diff) }} hari
                                     @else
                                         Selesai tepat waktu
                                     @endif

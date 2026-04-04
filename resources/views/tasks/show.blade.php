@@ -22,7 +22,7 @@
         <div class="note-card" style="padding: 32px; border-left: 6px solid {{ $task->color ?? 'var(--color-secondary)' }};">
             <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 24px; flex-wrap: wrap;">
                 @if($task->category)
-                    <span style="font-size: 0.8rem; font-weight: 700; color: white; background: {{ $task->color ?? 'var(--color-secondary)' }}; padding: 4px 14px; border-radius: 14px; text-transform: uppercase;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: {{ \App\Helpers\ThemeHelper::getContrastColor($task->color ?? '#547792') }}; background: {{ $task->color ?? 'var(--color-secondary)' }}; padding: 4px 14px; border-radius: 14px; text-transform: uppercase;">
                         {{ $task->category }}
                     </span>
                 @endif

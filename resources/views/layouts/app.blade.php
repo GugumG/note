@@ -32,6 +32,12 @@
         $accent    = \App\Models\Setting::get('theme_accent', '#94B4C1');
         $bg        = \App\Models\Setting::get('theme_bg', '#F3F4F4');
         $navbar    = \App\Models\Setting::get('theme_navbar', '#EAE0CFec');
+
+        $onPrimary   = \App\Helpers\ThemeHelper::getContrastColor($primary);
+        $onSecondary = \App\Helpers\ThemeHelper::getContrastColor($secondary);
+        $onAccent    = \App\Helpers\ThemeHelper::getContrastColor($accent);
+        $onBg        = \App\Helpers\ThemeHelper::getContrastColor($bg);
+        $onNavbar    = \App\Helpers\ThemeHelper::getContrastColor($navbar);
     @endphp
     <style>
         :root {
@@ -40,6 +46,16 @@
             --color-accent: {{ $accent }};
             --color-bg: {{ $bg }};
             --color-navbar: {{ $navbar }};
+            
+            /* Dynamic Text Colors Based on Contrast */
+            --color-text-on-primary: {{ $onPrimary }};
+            --color-text-on-secondary: {{ $onSecondary }};
+            --color-text-on-accent: {{ $onAccent }};
+            --color-text-on-bg: {{ $onBg }};
+            --color-text-on-navbar: {{ $onNavbar }};
+
+            /* Also update the primary text to use the onBg color if needed */
+            --color-text-primary: {{ $onBg }};
             
             /* Dynamic dark tones based on the primary */
             --color-primary-dark: {{ $primary }}dd; 

@@ -110,7 +110,7 @@ class TaskController extends Controller
         if ($task->deadline) {
             // hitung jumlah hari nya ( tanggal deadline - tgl selesai)
             $deadline = \Carbon\Carbon::parse($task->deadline);
-            $daysDiff = $now->diffInDays($deadline, false);
+            $daysDiff = (int)$now->diffInDays($deadline, false);
             // $daysDiff > 0 means finished early, negative means late
         }
 
