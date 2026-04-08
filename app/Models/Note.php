@@ -21,6 +21,7 @@ class Note extends Model
         'content',
         'is_pinned',
         'hashtags',
+        'visibility', // [AI Rules] Menambahkan visibility (Personal/Team)
     ];
 
     // [2e] $casts: Cast kolom ke tipe data PHP yang sesuai.

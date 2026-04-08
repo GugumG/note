@@ -31,18 +31,30 @@
             </a>
             <div class="form-header-info">
                 <h2 class="form-title">{{ $note->title }}</h2>
-                {{-- [10f] Tampilkan tanggal catatan --}}
-                <p class="form-subtitle">
+                {{-- [10f] Tampilkan tanggal & visibilitas catatan --}}
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 4px;">
                     <span class="show-date-badge">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="13" height="13">
                             <path d="M19 3h-1V1h-2v2H8V1H6v2H5C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/>
                         </svg>
                         {{ $note->note_date->locale('id')->isoFormat('dddd, D MMMM YYYY') }}
                     </span>
-                </p>
+
+                    @php $isShared = $note->user_id !== auth()->id(); @endphp
+                    
+                    @if($isShared)
+                        <span class="status-badge" style="background: var(--color-secondary); color: white; font-size: 0.7rem; padding: 3px 10px; border-radius: 12px; font-weight: 700;">
+                            👥 TIM (Oleh: {{ $note->user->name }})
+                        </span>
+                    @else
+                        <span class="status-badge" style="background: {{ $note->visibility === 'team' ? 'rgba(148, 180, 193, 0.2)' : 'rgba(33, 52, 72, 0.1)' }}; color: var(--color-primary); font-size: 0.7rem; padding: 3px 10px; border-radius: 12px; font-weight: 700;">
+                            {{ $note->visibility === 'team' ? '👥 TEAM' : '🔒 PERSONAL' }}
+                        </span>
+                    @endif
+                </div>
             </div>
 
-            {{-- [10g] Tombol aksi di header: Edit & Delete --}}
+            {{-- [10g] Tombol aksi di header: Edit & Delete (Hanya jika Pemilik) --}}
             <div class="show-header-actions">
                 {{-- [New] Tombol Export PDF --}}
                 <a href="{{ route('notes.export-pdf', $note->id) }}" 
@@ -56,34 +68,36 @@
                     PDF
                 </a>
 
-                {{-- [10h] Tombol Edit → route notes.edit (STEP [4c]) → NoteController@edit (STEP [3n]) --}}
-                <a href="{{ route('notes.edit', $note->id) }}"
-                   class="btn-action-outline btn-action-edit"
-                   id="btn-edit-show"
-                   title="Edit Catatan">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                    </svg>
-                    Edit
-                </a>
-
-                {{-- [10i] Tombol Delete → form DELETE (STEP [4c]) → NoteController@destroy (STEP [3t]) --}}
-                <form action="{{ route('notes.destroy', $note->id) }}"
-                      method="POST"
-                      id="delete-form-show"
-                      style="display:inline;">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit"
-                            class="btn-action-outline btn-action-delete"
-                            title="Hapus Catatan"
-                            onclick="return confirm('Yakin ingin menghapus catatan ini?')">
+                @if(!$isShared)
+                    {{-- [10h] Tombol Edit --}}
+                    <a href="{{ route('notes.edit', $note->id) }}"
+                       class="btn-action-outline btn-action-edit"
+                       id="btn-edit-show"
+                       title="Edit Catatan">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                         </svg>
-                        Hapus
-                    </button>
-                </form>
+                        Edit
+                    </a>
+
+                    {{-- [10i] Tombol Delete --}}
+                    <form action="{{ route('notes.destroy', $note->id) }}"
+                          method="POST"
+                          id="delete-form-show"
+                          style="display:inline;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                                class="btn-action-outline btn-action-delete"
+                                title="Hapus Catatan"
+                                onclick="return confirm('Yakin ingin menghapus catatan ini?')">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                            </svg>
+                            Hapus
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
 

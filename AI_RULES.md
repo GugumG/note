@@ -37,6 +37,13 @@ Setiap file, class, method, atau blok logika penting **WAJIB** memiliki komentar
 
 ---
 
+## 🔒 Aturan Integritas Data
+1. **No Data Loss**: Data yang sudah di-input jangan sampai terhapus walaupun kode harus mengubah struktur datanya.
+2. **Pengecualian**: Kecuali data bentrok (conflict) atau kolomnya memang dihapus secara sengaja. 
+3. **Pencadangan (Backup)**: Jika harus menghapus data karena poin di atas, **WAJIB** backup data tersebut terlebih dahulu (misal lewat database seeding atau export script).
+
+---
+
 ## 📋 Prosedur AI Saat Bekerja
 1.  **Baca dulu**: Selalu baca file ini di awal sesi untuk menyelaraskan gaya penulisan.
 2.  **Berikan Opsi**: Jika ada solusi yang lebih efisien tapi kompleks, tawarkan dulu sebelum menulis kode.

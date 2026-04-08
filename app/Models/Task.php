@@ -18,7 +18,18 @@ class Task extends Model
         'is_pinned',
         'category',
         'color',
+        'assigned_user_id', // [AI Rules] Menambahkan pelaksana tugas (Invited)
+        'is_approved',      // [AI Rules] Sistem Approval oleh Owner
     ];
+
+    /**
+     * Relasi ke Pelaksana: User yang ditunjuk mengerjakan task.
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function assignedUser()
+    {
+        return $this->belongsTo(User::class, 'assigned_user_id');
+    }
 
     /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo */
     public function user()
@@ -44,7 +55,7 @@ class Task extends Model
             return 0;
         }
 
-        $daysRemaining = now()->startOfDay()->diffInDays($this->deadline->startOfDay(), false);
+        $daysRemaining = now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($this->deadline)->startOfDay(), false);
 
         if ($daysRemaining < 0) {
             return 2; // Telat

@@ -120,7 +120,31 @@
                 @enderror
             </div>
 
-            {{-- [6k] Tombol aksi form --}}
+            {{-- [New] VISIBILITAS — Personal vs Team --}}
+            <div class="form-group" style="margin-bottom: 24px; padding: 15px; background: rgba(148, 180, 193, 0.05); border-radius: var(--radius-md); border: 1px dashed var(--color-border);">
+                <label class="form-label" style="margin-bottom: 12px;">
+                    <span class="label-icon">🌐</span>
+                    Visibilitas Catatan
+                </label>
+                <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="radio" name="visibility" value="personal" checked style="width: 20px; height: 20px; accent-color: var(--color-secondary);">
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-weight: 600; font-size: 0.95rem; color: var(--color-primary);">🔒 Personal</span>
+                            <span style="font-size: 0.75rem; color: var(--color-text-muted);">Hanya Anda yang bisa melihat catatan ini.</span>
+                        </div>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="radio" name="visibility" value="team" {{ old('visibility') == 'team' ? 'checked' : '' }} style="width: 20px; height: 20px; accent-color: var(--color-secondary);">
+                        <div style="display: flex; flex-direction: column;">
+                            <span style="font-weight: 600; font-size: 0.95rem; color: var(--color-primary);">👥 Team</span>
+                            <span style="font-size: 0.75rem; color: var(--color-text-muted);">Bisa dilihat oleh rekan satu tim ({{ auth()->user()->team ?: 'Unit Kerja' }}).</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            {{-- [6k] Tombol aksi form -- --}}
             <div class="form-actions">
                 <a href="{{ route('notes.index') }}" class="btn-cancel">Batal</a>
                 <button type="submit" class="btn-primary" id="btn-submit-create">

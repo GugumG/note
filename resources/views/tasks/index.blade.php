@@ -5,17 +5,35 @@
 @section('page-breadcrumb', 'NoteApp / Tasks')
 
 @section('content')
-    <div class="page-header">
-        <div class="page-header-left">
-            <h2 class="page-heading">Manajemen Task</h2>
-            <p class="page-subheading">{{ $tasks->count() }} task tercatat</p>
+    <div class="page-header" style="flex-direction: column; align-items: flex-start; gap: 20px;">
+        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+            <div class="page-header-left">
+                <h2 class="page-heading">Manajemen Task</h2>
+                <p class="page-subheading">{{ $tasks->count() }} task tercatat</p>
+            </div>
+            <a href="{{ route('tasks.create') }}" class="btn-primary" id="btn-create-task">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+                <span>Tambah Task</span>
+            </a>
         </div>
-        <a href="{{ route('tasks.create') }}" class="btn-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-            </svg>
-            <span>Tambah Task</span>
-        </a>
+
+        {{-- [New] Filter Kolaborasi -- --}}
+        <div style="display: flex; gap: 8px; background: rgba(148, 180, 193, 0.1); padding: 5px; border-radius: var(--radius-lg); width: fit-content;">
+            <a href="{{ route('tasks.index', ['filter' => 'all']) }}" 
+               style="padding: 8px 20px; border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: all 0.3s; {{ $filter === 'all' ? 'background: white; color: var(--color-primary); shadow: var(--shadow-sm);' : 'color: var(--color-text-muted);' }}">
+                Semua
+            </a>
+            <a href="{{ route('tasks.index', ['filter' => 'mine']) }}" 
+               style="padding: 8px 20px; border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: all 0.3s; {{ $filter === 'mine' ? 'background: white; color: var(--color-primary); shadow: var(--shadow-sm);' : 'color: var(--color-text-muted);' }}">
+                📌 Buatan Saya
+            </a>
+            <a href="{{ route('tasks.index', ['filter' => 'assigned']) }}" 
+               style="padding: 8px 20px; border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: all 0.3s; {{ $filter === 'assigned' ? 'background: white; color: var(--color-primary); shadow: var(--shadow-sm);' : 'color: var(--color-text-muted);' }}">
+                📥 Ditugaskan ke Saya
+            </a>
+        </div>
     </div>
 
     @if($tasks->isEmpty())
@@ -34,7 +52,15 @@
     @else
         <div class="notes-grid"> {{-- Reuse grid style --}}
             @foreach($tasks as $task)
-            <div class="note-card task-full-card {{ $task->is_pinned ? 'is-pinned' : '' }}" style="border-left: 6px solid {{ $task->color ?? ($task->status == 'complete' ? '#1e40af' : '#547792') }}">
+            @php
+                $isOwner = $task->user_id === auth()->id();
+                $isAssigned = $task->assigned_user_id === auth()->id();
+                $needsACC = $task->status === 'complete' && !$task->is_approved;
+            @endphp
+            <div class="note-card task-full-card {{ $task->is_pinned ? 'is-pinned' : '' }}" 
+                 style="border-left: 6px solid {{ $task->color ?? ($task->status == 'complete' ? '#1e40af' : '#547792') }}; 
+                        {{ $isAssigned ? 'background: #fcfdfe;' : '' }}">
+                
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <div class="note-card-date">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
@@ -50,16 +76,30 @@
                 </div>
                 
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                    <h3 class="note-card-title">{{ $task->title }}</h3>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        @if($task->urgency_label)
-                            <span class="status-badge status-{{ strtolower($task->urgency_label) }}">
-                                {{ $task->urgency_label }}
+                    <div>
+                        <h3 class="note-card-title" style="margin-bottom: 4px;">{{ $task->title }}</h3>
+                        <p style="font-size: 0.7rem; color: var(--color-text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 4px;">
+                            @if($isOwner && $task->assignedUser)
+                                <span style="background: #eef2ff; color: #4338ca; padding: 1px 6px; border-radius: 4px;">Untuk: <strong>{{ $task->assignedUser->name }}</strong></span>
+                            @elseif($isAssigned)
+                                <span style="background: #f0fdf4; color: #15803d; padding: 1px 6px; border-radius: 4px;">Dari: <strong>{{ $task->user->name }}</strong></span>
+                            @endif
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-direction: column; align-items: flex-end;">
+                        <div style="display: flex; gap: 4px;">
+                            @if($task->urgency_label)
+                                <span class="status-badge status-{{ strtolower($task->urgency_label) }}">
+                                    {{ $task->urgency_label }}
+                                </span>
+                            @endif
+                            <span class="status-badge status-{{ str_replace(' ', '-', $task->status) }}">
+                                {{ $task->status }}
                             </span>
+                        </div>
+                        @if($needsACC)
+                            <span style="font-size: 0.6rem; font-weight: 800; color: #d97706; background: #fffbeb; padding: 2px 8px; border-radius: 4px; border: 1px solid #fcd34d;">WAITING ACC</span>
                         @endif
-                        <span class="status-badge status-{{ str_replace(' ', '-', $task->status) }}">
-                            {{ $task->status }}
-                        </span>
                     </div>
                 </div>
 
@@ -109,29 +149,45 @@
                             <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
                         </svg>
                     </a>
-                    <form action="{{ route('tasks.toggle-pin', $task->id) }}" method="POST" style="display: inline;">
-                        @csrf
-                        <button type="submit" class="action-btn" title="{{ $task->is_pinned ? 'Lepas Pin' : 'Pin Task' }}" style="color: {{ $task->is_pinned ? 'var(--color-primary)' : 'var(--color-text-muted)' }};">
+
+                    @if($isOwner || $isAssigned)
+                        <form action="{{ route('tasks.toggle-pin', $task->id) }}" method="POST" style="display: inline;">
+                            @csrf
+                            <button type="submit" class="action-btn" title="{{ $task->is_pinned ? 'Lepas Pin' : 'Pin Task' }}" style="color: {{ $task->is_pinned ? 'var(--color-primary)' : 'var(--color-text-muted)' }};">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                                    <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h7v6h2v-6h7v-2l-2-2z"/>
+                                </svg>
+                            </button>
+                        </form>
+                    @endif
+
+                    @if($isOwner)
+                        <a href="{{ route('tasks.edit', $task->id) }}" class="action-btn action-btn-edit" title="Edit">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                                <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h7v6h2v-6h7v-2l-2-2z"/>
+                                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                             </svg>
-                        </button>
-                    </form>
-                    <a href="{{ route('tasks.edit', $task->id) }}" class="action-btn action-btn-edit" title="Edit">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                        </svg>
-                    </a>
-                    <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" class="delete-form">
-                        @csrf @method('DELETE')
-                        <button type="submit" class="action-btn action-btn-delete" title="Hapus" onclick="return confirm('Hapus task ini?')">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                            </svg>
-                        </button>
-                    </form>
-                    @if($task->status != 'complete')
-                        <a href="{{ route('tasks.complete-form', $task->id) }}" class="btn-task-action btn-task-complete" style="margin-left: 8px; text-decoration: none; display: flex; align-items: center; justify-content: center;">Complete</a>
+                        </a>
+                        <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" class="delete-form">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="action-btn action-btn-delete" title="Hapus" onclick="return confirm('Hapus task ini?')">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                                </svg>
+                            </button>
+                        </form>
+
+                        @if($needsACC)
+                            <form action="{{ route('tasks.approve', $task->id) }}" method="POST" style="display: inline;">
+                                @csrf
+                                <button type="submit" class="btn-task-action" style="margin-left: 8px; background: #059669; color: white; border: none; padding: 4px 12px; border-radius: 6px; font-weight: 700; cursor: pointer;">
+                                    ACC Selesai
+                                </button>
+                            </form>
+                        @endif
+                    @endif
+
+                    @if($task->status != 'complete' && ($isOwner || $isAssigned))
+                        <a href="{{ route('tasks.complete-form', $task->id) }}" class="btn-task-action btn-task-complete" style="margin-left: 8px; text-decoration: none; display: flex; align-items: center; justify-content: center;">Tandai Selesai</a>
                     @endif
                 </div>
             </div>

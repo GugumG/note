@@ -22,6 +22,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'team', // [AI Rules] Menambahkan kolom team agar bisa di-kelola di User Management
     ];
 
     /**
@@ -48,6 +50,19 @@ class User extends Authenticatable
     }
 
     // ------------------------------------------------------------
+    // [HELPER] — Fungsi pembantu untuk mengecek otoritas user.
+    // ------------------------------------------------------------
+
+    /**
+     * Mengecek apakah user adalah administrator.
+     * @return bool
+     */
+    public function isAdmin()
+    {
+        return $this->role === 'administrator';
+    }
+
+    // ------------------------------------------------------------
     // [RELASI] — Setiap User memiliki koleksi Catatan, Task, dan Setting.
     // ------------------------------------------------------------
 
@@ -61,6 +76,15 @@ class User extends Authenticatable
     public function tasks()
     {
         return $this->hasMany(Task::class);
+    }
+
+    /**
+     * Relasi ke Task: Tugas-tugas di mana user ini ditunjuk sebagai pelaksana (Invited).
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function assignedTasks()
+    {
+        return $this->hasMany(Task::class, 'assigned_user_id');
     }
 
     /** @return \Illuminate\Database\Eloquent\Relations\HasMany */

@@ -13,6 +13,7 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\SettingController;
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 
 // --------------------------------------------------------
 // [Auth] — Routes untuk Autentikasi (Guest Only)
@@ -43,6 +44,7 @@ Route::middleware('auth')->group(function () {
     // [New] Resource routes for Task CRUD
     Route::resource('tasks', TaskController::class);
     Route::post('tasks/{task}/complete', [TaskController::class, 'complete'])->name('tasks.complete');
+    Route::post('tasks/{task}/approve', [TaskController::class, 'approve'])->name('tasks.approve');
     Route::post('tasks/{task}/toggle-pin', [TaskController::class, 'togglePin'])->name('tasks.toggle-pin');
     Route::post('notes/{note}/toggle-pin', [NoteController::class, 'togglePin'])->name('notes.toggle-pin');
 
@@ -50,8 +52,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings/theme', [SettingController::class, 'theme'])->name('settings.theme');
     Route::post('/settings/theme', [SettingController::class, 'updateTheme'])->name('settings.update-theme');
 
-    // [New] Dummy Routes for User & Role (Postponed but for link stability)
-    Route::get('/settings/users', function() { return view('settings.dummy', ['title' => 'User Management']); })->name('settings.users');
+    // [New] User Management CRUD (Akses dibatasi di Controller)
+    Route::resource('users', UserController::class);
+    // Alias untuk kompatibilitas dengan view theme yang sudah ada
+    Route::get('/settings/users', [UserController::class, 'index'])->name('settings.users');
+    
     Route::get('/settings/roles', function() { return view('settings.dummy', ['title' => 'Role Management']); })->name('settings.roles');
 
     // [New] Special routes for completing a task with validation data

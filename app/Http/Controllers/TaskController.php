@@ -10,20 +10,33 @@ use App\Models\Task;
 class TaskController extends Controller
 {
     /**
-     * Display a listing of all tasks.
+     * Display a listing of all tasks with collaboration logic.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $tasks = auth()->user()->tasks()
-                    ->orderBy('is_pinned', 'desc')
-                    ->orderByRaw("CASE 
-                        WHEN status != 'complete' AND deadline IS NOT NULL AND deadline < date('now', 'localtime') THEN 2
-                        WHEN status != 'complete' AND deadline IS NOT NULL AND deadline <= date('now', 'localtime', '+3 days') THEN 1
-                        ELSE 0
-                    END DESC")
+        $user = auth()->user();
+        $filter = $request->get('filter', 'all'); // all, mine, assigned
+
+        // Base Queries
+        $myTasksQuery = $user->tasks();
+        $assignedTasksQuery = Task::where('assigned_user_id', $user->id);
+
+        if ($filter === 'mine') {
+            $query = $myTasksQuery;
+        } elseif ($filter === 'assigned') {
+            $query = $assignedTasksQuery;
+        } else {
+            $query = Task::where(function($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhere('assigned_user_id', $user->id);
+            });
+        }
+
+        $tasks = $query->orderBy('is_pinned', 'desc')
                     ->orderBy('deadline', 'asc')
                     ->get();
-        return view('tasks.index', compact('tasks'));
+
+        return view('tasks.index', compact('tasks', 'filter'));
     }
 
     /**
@@ -31,7 +44,15 @@ class TaskController extends Controller
      */
     public function create()
     {
-        return view('tasks.create');
+        // Ambil semua user kecuali diri sendiri untuk dropdown "Invite"
+        // Hanya Admin atau Leader yang bisa invite
+        $users = [];
+        if (auth()->user()->role !== 'member') {
+            $users = \App\Models\User::where('id', '!=', auth()->id())
+                        ->where('team', auth()->user()->team)
+                        ->get();
+        }
+        return view('tasks.create', compact('users'));
     }
 
     /**
@@ -40,17 +61,24 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'category' => 'nullable|string|max:255',
-            'color' => 'nullable|string|max:7',
-            'deadline' => 'nullable|date',
-            'status' => 'required|in:pending,suspend,on progress,complete',
-            'content' => 'nullable|string',
+            'title'            => 'required|string|max:255',
+            'category'         => 'nullable|string|max:255',
+            'color'            => 'nullable|string|max:7',
+            'deadline'         => 'nullable|date',
+            'status'           => 'required|in:pending,suspend,on progress,complete',
+            'content'          => 'nullable|string',
+            'assigned_user_id' => 'nullable|exists:users,id',
         ]);
+
+        // Jika owner sendiri yang membuat status 'complete', langsung set approved
+        if ($validated['status'] === 'complete') {
+            $validated['is_approved'] = true;
+            $validated['completed_at'] = now();
+        }
 
         auth()->user()->tasks()->create($validated);
 
-        return redirect()->route('notes.index')->with('success', 'Task berhasil ditambahkan!');
+        return redirect()->route('tasks.index')->with('success', 'Task berhasil ditambahkan!');
     }
 
     /**
@@ -58,14 +86,26 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-        if ($task->user_id !== auth()->id()) abort(403);
+        // Otoritas: Owner atau Assigned User
+        if ($task->user_id !== auth()->id() && $task->assigned_user_id !== auth()->id()) {
+            abort(403);
+        }
         return view('tasks.show', compact('task'));
     }
 
     public function edit(Task $task)
     {
+        // Hanya Owner yang bisa edit struktur task
         if ($task->user_id !== auth()->id()) abort(403);
-        return view('tasks.edit', compact('task'));
+
+        $users = [];
+        if (auth()->user()->role !== 'member') {
+            $users = \App\Models\User::where('id', '!=', auth()->id())
+                        ->where('team', auth()->user()->team)
+                        ->get();
+        }
+        
+        return view('tasks.edit', compact('task', 'users'));
     }
 
     /**
@@ -74,23 +114,34 @@ class TaskController extends Controller
     public function update(Request $request, Task $task)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'category' => 'nullable|string|max:255',
-            'color' => 'nullable|string|max:7',
-            'deadline' => 'nullable|date',
-            'status' => 'required|in:pending,suspend,on progress,complete',
-            'content' => 'nullable|string',
+            'title'            => 'required|string|max:255',
+            'category'         => 'nullable|string|max:255',
+            'color'            => 'nullable|string|max:7',
+            'deadline'         => 'nullable|date',
+            'status'           => 'required|in:pending,suspend,on progress,complete',
+            'content'          => 'nullable|string',
+            'assigned_user_id' => 'nullable|exists:users,id',
         ]);
 
         if ($task->user_id !== auth()->id()) abort(403);
+
+        // Jika status dirubah ke complete oleh owner
+        if ($validated['status'] === 'complete' && $task->status !== 'complete') {
+            $validated['is_approved'] = true;
+            $validated['completed_at'] = now();
+        }
+
         $task->update($validated);
 
-        return redirect()->route('notes.index')->with('success', 'Task berhasil diperbarui!');
+        return redirect()->route('tasks.index')->with('success', 'Task berhasil diperbarui!');
     }
 
     public function completeForm(Task $task)
     {
-        if ($task->user_id !== auth()->id()) abort(403);
+        // Otoritas: Owner atau Assigned User
+        if ($task->user_id !== auth()->id() && $task->assigned_user_id !== auth()->id()) {
+            abort(403);
+        }
         return view('tasks.complete', compact('task'));
     }
 
@@ -103,26 +154,44 @@ class TaskController extends Controller
             'completion_data' => 'required|string',
         ]);
 
-        $now = now();
-        $daysDiff = null;
-
-        if ($task->deadline) {
-            // hitung jumlah hari nya ( tanggal deadline - tgl selesai)
-            $deadline = \Carbon\Carbon::parse($task->deadline);
-            $daysDiff = (int)$now->diffInDays($deadline, false);
-            // $daysDiff > 0 means finished early, negative means late
+        if ($task->user_id !== auth()->id() && $task->assigned_user_id !== auth()->id()) {
+            abort(403);
         }
 
+        $now = now();
+        $daysDiff = null;
+        if ($task->deadline) {
+            $deadline = \Carbon\Carbon::parse($task->deadline);
+            $daysDiff = (int)$now->diffInDays($deadline, false);
+        }
+
+        $isOwner = $task->user_id === auth()->id();
+        
+        // Alur Approval: Jika bukan owner, harus di-ACC (is_approved = false)
+        $updateData = [
+            'completion_data' => $validated['completion_data'],
+            'status'          => 'complete',
+            'completed_at'    => $now,
+            'days_diff'       => $daysDiff,
+            'is_approved'     => $isOwner, // True jika owner sendiri, False jika assignee
+        ];
+
+        $task->update($updateData);
+
+        $msg = $isOwner ? 'Task berhasil diselesaikan!' : 'Task ditandai selesai. Menunggu persetujuan (ACC) pemilik.';
+        return redirect()->route('tasks.index')->with('success', $msg);
+    }
+
+    /**
+     * Memberikan ACC (Persetujuan) pada task yang diselesaikan orang lain.
+     */
+    public function approve(Task $task)
+    {
         if ($task->user_id !== auth()->id()) abort(403);
 
-        $task->update([
-            'completion_data' => $validated['completion_data'],
-            'status' => 'complete',
-            'completed_at' => $now,
-            'days_diff' => $daysDiff,
-        ]);
+        $task->update(['is_approved' => true]);
 
-        return redirect()->route('notes.index')->with('success', 'Task berhasil diselesaikan!');
+        return redirect()->route('tasks.index')->with('success', 'Task telah disetujui (ACC) dan dianggap selesai.');
     }
 
     /**
@@ -130,7 +199,9 @@ class TaskController extends Controller
      */
     public function togglePin(Task $task)
     {
-        if ($task->user_id !== auth()->id()) abort(403);
+        if ($task->user_id !== auth()->id() && $task->assigned_user_id !== auth()->id()) {
+            abort(403);
+        }
         $task->update([
             'is_pinned' => !$task->is_pinned,
         ]);

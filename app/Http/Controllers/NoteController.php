@@ -16,35 +16,60 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class NoteController extends Controller
 {
     /**
-     * Tampilkan semua notes milik user yang sedang login.
+     * Tampilkan semua notes dengan logic filter (Personal vs Shared).
      */
     public function index(Request $request)
     {
-        // Ambil catatan milik user, urutkan: Pin -> Tanggal Terbaru
-        $query = auth()->user()->notes()
-                    ->orderBy('is_pinned', 'desc')
-                    ->orderBy('note_date', 'desc');
+        $user = auth()->user();
+        $filter = $request->get('filter', 'all'); // all, mine, shared
+        
+        // Base Query: Catatan milik sendiri
+        $myNotesQuery = $user->notes();
+        
+        // Query Catatan Shared: Milik orang lain di tim yang sama dengan visibilitas 'team'
+        $sharedNotesQuery = Note::where('user_id', '!=', $user->id)
+            ->where('visibility', 'team')
+            ->whereHas('user', function($q) use ($user) {
+                $q->where('team', $user->team)->whereNotNull('team');
+            });
 
-        if ($request->has('hashtag') && $request->hashtag != '') {
-            $searchTerm = $request->hashtag;
-            $query->where('hashtags', 'like', '%' . $searchTerm . '%');
+        // Terapkan Filter
+        if ($filter === 'mine') {
+            $query = $myNotesQuery;
+        } elseif ($filter === 'shared') {
+            $query = $sharedNotesQuery;
+        } else {
+            // Gabungkan catatan sendiri dan catatan tim (all)
+            $query = Note::where(function($q) use ($user) {
+                // Milik sendiri
+                $q->where('user_id', $user->id)
+                  // ATAU milik tim (orang lain se-tim)
+                  ->orWhere(function($sq) use ($user) {
+                      $sq->where('user_id', '!=', $user->id)
+                         ->where('visibility', 'team')
+                         ->whereHas('user', function($tq) use ($user) {
+                             $tq->where('team', $user->team)->whereNotNull('team');
+                         });
+                  });
+            });
         }
 
-        $notes = $query->get();
+        // Urutkan: Pin -> Tanggal Terbaru
+        $notes = $query->orderBy('is_pinned', 'desc')
+                      ->orderBy('note_date', 'desc')
+                      ->get();
 
-        // Ambil task milik user untuk sidebar
-        $tasks = auth()->user()->tasks()
+        // Ambil task milik user (termasuk yang di-invite) untuk sidebar
+        $tasks = Task::where(function($q) use ($user) {
+                        $q->where('user_id', $user->id)
+                          ->orWhere('assigned_user_id', $user->id);
+                    })
                     ->where('status', '!=', 'complete')
                     ->orderBy('is_pinned', 'desc')
-                    ->orderByRaw("CASE 
-                        WHEN deadline IS NOT NULL AND deadline < date('now', 'localtime') THEN 2
-                        WHEN deadline IS NOT NULL AND deadline <= date('now', 'localtime', '+3 days') THEN 1
-                        ELSE 0
-                    END DESC")
                     ->orderBy('deadline', 'asc')
                     ->get();
 
-        return view('notes.index', compact('notes', 'tasks'));
+        return view('notes.index', compact('notes', 'tasks', 'filter'));
     }
 
     /**
@@ -64,7 +89,13 @@ class NoteController extends Controller
      */
     public function show(Note $note)
     {
-        if ($note->user_id !== auth()->id()) abort(403);
+        // Cek Otoritas Otoritas: Milik sendiri ATAU satu tim & visibility team
+        $user = auth()->user();
+        $isOwner = $note->user_id === $user->id;
+        $isTeamMember = $note->visibility === 'team' && $note->user->team === $user->team && $user->team !== null;
+
+        if (!$isOwner && !$isTeamMember) abort(403);
+        
         return view('notes.show', compact('note'));
     }
 
@@ -83,10 +114,11 @@ class NoteController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title'     => 'required|string|max:255',
-            'note_date' => 'required|date',
-            'content'   => 'required|string',
-            'hashtags'  => 'nullable|string|max:255',
+            'title'      => 'required|string|max:255',
+            'note_date'  => 'required|date',
+            'content'    => 'required|string',
+            'hashtags'   => 'nullable|string|max:255',
+            'visibility' => 'required|in:personal,team',
         ]);
 
         auth()->user()->notes()->create($validated);
@@ -109,10 +141,11 @@ class NoteController extends Controller
     public function update(Request $request, Note $note)
     {
         $validated = $request->validate([
-            'title'     => 'required|string|max:255',
-            'note_date' => 'required|date',
-            'content'   => 'required|string',
-            'hashtags'  => 'nullable|string|max:255',
+            'title'      => 'required|string|max:255',
+            'note_date'  => 'required|date',
+            'content'    => 'required|string',
+            'hashtags'   => 'nullable|string|max:255',
+            'visibility' => 'required|in:personal,team',
         ]);
 
         if ($note->user_id !== auth()->id()) abort(403);
